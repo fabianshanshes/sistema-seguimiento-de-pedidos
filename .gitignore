@@ -1,0 +1,15 @@
+# Ignorar node_modules
+node_modules/
+
+# Ignorar archivos de construcción en React
+/client/build
+
+# Ignorar archivos .env
+.env
+
+# Ignorar archivos de logs
+*.log
+
+# Otros archivos del sistema
+.DS_Store
+Thumbs.db
