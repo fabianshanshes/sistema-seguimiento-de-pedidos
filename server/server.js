@@ -1,6 +1,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
-
+const cors = require('cors');
+       
 dotenv.config({ path: '../.env' });
 
 const pedidosRoutes = require('./routes/pedidos.routes');
@@ -9,7 +10,7 @@ console.log('DB_USER:', process.env.DB_USER);
 console.log('DB_NAME:', process.env.DB_NAME);
 
 const app = express();
-
+app.use(cors());              
 app.use(express.json());
 
 app.get('/', (req, res) => {
@@ -18,6 +19,7 @@ app.get('/', (req, res) => {
 
 app.use('/api/pedidos', pedidosRoutes);
 app.use('/api/clientes', clientesRoutes);
+
 
 app.use((req, res) => {
   res.status(404).json({ message: 'Ruta no encontrada' });

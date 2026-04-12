@@ -1,15 +1,26 @@
 import React, { useState } from 'react';
+import api from '../api';
 
 export default function Login({ setVistaActiva, setUsuario }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState('');
 
-  const manejarSubmit = (e) => {
+  const manejarSubmit = async (e) => {
     e.preventDefault();
-    // Simulación temporal de inicio de sesión
-    setUsuario({ id: 1, nombre: 'Usuario Premium' });
-    setVistaActiva('hacer_pedido');
+    try {
+      // Buscar cliente por email (el password no se usa aún, pero puedes agregarlo después)
+      const res = await api.get('/clientes');
+      const cliente = res.data.find(c => c.email === email);
+      if (!cliente) {
+        setError('Correo no registrado');
+        return;
+      }
+      setUsuario({ id: cliente.id, nombre: cliente.nombre, email: cliente.email });
+      setVistaActiva('hacer_pedido');
+    } catch (err) {
+      setError('Error al conectar con el servidor');
+    }
   };
 
   return (
@@ -69,15 +80,7 @@ export default function Login({ setVistaActiva, setUsuario }) {
           </div>
 
           <div className="flex items-center justify-between">
-            <label className="flex items-center cursor-pointer">
-              <input 
-                type="checkbox" 
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <span className="ml-2 text-sm text-gray-600">Recordarme</span>
-            </label>
+
             <button type="button" className="text-sm text-blue-600 hover:text-blue-800 hover:underline font-medium transition-colors">
               ¿Olvidaste tu contraseña?
             </button>
