@@ -1,0 +1,8 @@
+
+POST http://localhost:5000/api/pedidos/2/historial
+Content-Type: application/json
+
+{
+  "estado": "entregado",
+  "comentarios": "Pedido entregado al cliente"
+}
