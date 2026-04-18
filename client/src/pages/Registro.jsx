@@ -1,3 +1,4 @@
+// client/src/pages/Registro.jsx
 import React, { useState } from 'react';
 import api from '../api';
 
@@ -6,10 +7,13 @@ export default function Registro({ setVistaActiva }) {
     nombre: '',
     direccion: '',
     telefono: '',
-    email: ''
+    email: '',
+    password: '',
+    confirmPassword: ''
   });
   const [error, setError] = useState('');
   const [exito, setExito] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -18,21 +22,42 @@ export default function Registro({ setVistaActiva }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    
+    if (formData.password !== formData.confirmPassword) {
+      setError('Las contraseñas no coinciden');
+      return;
+    }
+    
+    if (formData.password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+    
+    setLoading(true);
+    
     try {
       await api.post('/clientes', {
         nombre: formData.nombre,
         direccion: formData.direccion,
         telefono: formData.telefono || null,
-        email: formData.email
+        email: formData.email,
+        contraseña: formData.password 
       });
+      
       setExito(true);
       setTimeout(() => {
         setExito(false);
-        setVistaActiva('login'); // Redirige al login después de registrarse
+        setVistaActiva('login');
       }, 2000);
     } catch (err) {
-      setError('Error al registrar. Intente de nuevo.');
+      if (err.response && err.response.status === 409) {
+        setError('El email ya está registrado');
+      } else {
+        setError('Error al registrar. Intente de nuevo.');
+      }
       console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -58,6 +83,7 @@ export default function Registro({ setVistaActiva }) {
               value={formData.nombre}
               onChange={handleChange}
               required
+              disabled={loading}
               className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
               placeholder="Juan Pérez"
             />
@@ -71,6 +97,7 @@ export default function Registro({ setVistaActiva }) {
               value={formData.direccion}
               onChange={handleChange}
               required
+              disabled={loading}
               className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
               placeholder="Calle Falsa 123, Ciudad"
             />
@@ -83,6 +110,7 @@ export default function Registro({ setVistaActiva }) {
               name="telefono"
               value={formData.telefono}
               onChange={handleChange}
+              disabled={loading}
               className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
               placeholder="+56 9 1234 5678"
             />
@@ -96,8 +124,37 @@ export default function Registro({ setVistaActiva }) {
               value={formData.email}
               onChange={handleChange}
               required
+              disabled={loading}
               className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
               placeholder="ejemplo@correo.com"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Contraseña *</label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              disabled={loading}
+              className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              placeholder="Mínimo 6 caracteres"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Confirmar Contraseña *</label>
+            <input
+              type="password"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required
+              disabled={loading}
+              className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              placeholder="Repite la contraseña"
             />
           </div>
 
@@ -106,16 +163,21 @@ export default function Registro({ setVistaActiva }) {
 
           <button
             type="submit"
-            className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-bold shadow-lg transition-all"
+            disabled={loading}
+            className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-bold shadow-lg transition-all disabled:opacity-50"
           >
-            Crear Cuenta
+            {loading ? 'Registrando...' : 'Crear Cuenta'}
           </button>
         </form>
 
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-600">
             ¿Ya tienes una cuenta?{' '}
-            <button onClick={() => setVistaActiva('login')} className="text-purple-600 hover:underline font-bold">
+            <button 
+              onClick={() => setVistaActiva('login')} 
+              className="text-purple-600 hover:underline font-bold"
+              disabled={loading}
+            >
               Inicia Sesión
             </button>
           </p>

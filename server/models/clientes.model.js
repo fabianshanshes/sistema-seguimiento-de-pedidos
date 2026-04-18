@@ -31,8 +31,19 @@ async function create({ nombre, direccion, telefono, email }) {
   return getById(result.insertId);
 }
 
+async function getByEmail(email) {
+  const [rows] = await db.query(
+    `SELECT id, nombre, direccion, telefono, email, contraseña
+    FROM clientes
+    WHERE email = ?`,
+    [email]
+  );
+  return rows[0] || null;
+}
+
 module.exports = {
   create,
   getAll,
-  getById
+  getById,
+  getByEmail
 };
