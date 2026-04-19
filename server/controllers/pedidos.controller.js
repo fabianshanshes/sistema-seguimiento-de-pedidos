@@ -46,7 +46,7 @@ async function obtenerPedidoPorId(req, res, next) {
 
 async function crearPedido(req, res, next) {
   try {
-    const { numero_pedido, cliente_id, fecha_pedido, estado, detalle_pedido } = req.body;
+    const { numero_pedido, cliente_id, fecha_pedido, estado, detalle_pedido, productos } = req.body;
 
     if (!numero_pedido || !fecha_pedido || !cliente_id) {
       throw createHttpError(
@@ -61,24 +61,35 @@ async function crearPedido(req, res, next) {
       throw createHttpError(400, 'El estado enviado no es valido');
     }
 
-    const pedido = await pedidosModel.create({
-      numero_pedido: String(numero_pedido).trim(),
-      cliente_id: Number(cliente_id),
-      fecha_pedido,
-      estado: estadoFinal,
-      detalle_pedido: detalle_pedido || null
-    });
+    let pedido;
+    
+    if (productos && productos.length > 0) {
+      pedido = await pedidosModel.createWithDetails({
+        numero_pedido: String(numero_pedido).trim(),
+        cliente_id: Number(cliente_id),
+        fecha_pedido,
+        estado: estadoFinal,
+        detalle_pedido: detalle_pedido || JSON.stringify(productos),
+        productos
+      });
+    } else {
+      pedido = await pedidosModel.create({
+        numero_pedido: String(numero_pedido).trim(),
+        cliente_id: Number(cliente_id),
+        fecha_pedido,
+        estado: estadoFinal,
+        detalle_pedido: detalle_pedido || null
+      });
+    }
 
     res.status(201).json(pedido);
   } catch (error) {
     if (error.code === 'ER_DUP_ENTRY') {
       return next(createHttpError(409, 'El numero de pedido ya existe'));
     }
-
     if (error.code === 'ER_NO_REFERENCED_ROW_2') {
       return next(createHttpError(400, 'El cliente indicado no existe'));
     }
-
     next(error);
   }
 }

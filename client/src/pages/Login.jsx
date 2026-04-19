@@ -1,3 +1,4 @@
+// client/src/pages/Login.jsx
 import React, { useState } from 'react';
 import api from '../api';
 
@@ -5,21 +6,35 @@ export default function Login({ setVistaActiva, setUsuario }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const manejarSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
+    
     try {
-      // Buscar cliente por email (el password no se usa aún, pero puedes agregarlo después)
-      const res = await api.get('/clientes');
-      const cliente = res.data.find(c => c.email === email);
-      if (!cliente) {
-        setError('Correo no registrado');
-        return;
-      }
-      setUsuario({ id: cliente.id, nombre: cliente.nombre, email: cliente.email });
+      const res = await api.post('/auth/login', { 
+        email, 
+        contraseña: password 
+      });
+      
+      setUsuario(res.data.usuario);
+      
+      setEmail('');
+      setPassword('');
+      
       setVistaActiva('hacer_pedido');
+      
     } catch (err) {
-      setError('Error al conectar con el servidor');
+      if (err.response && err.response.status === 401) {
+        setError('Email o contraseña incorrectos');
+      } else {
+        setError('Error al conectar con el servidor');
+      }
+      console.error('Error de login:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -52,6 +67,7 @@ export default function Login({ setVistaActiva, setUsuario }) {
                 required 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
                 className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 placeholder="ejemplo@correo.com"
               />
@@ -73,24 +89,25 @@ export default function Login({ setVistaActiva, setUsuario }) {
                 required 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
                 className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 placeholder="••••••••"
               />
             </div>
           </div>
 
-          <div className="flex items-center justify-between">
-
-            <button type="button" className="text-sm text-blue-600 hover:text-blue-800 hover:underline font-medium transition-colors">
-              ¿Olvidaste tu contraseña?
-            </button>
-          </div>
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+              {error}
+            </div>
+          )}
 
           <button 
             type="submit" 
-            className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-bold shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200"
+            disabled={loading}
+            className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-bold shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 disabled:opacity-50"
           >
-            Iniciar Sesión
+            {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
           </button>
         </form>
 
