@@ -1,4 +1,5 @@
 const clientesModel = require('../models/clientes.model');
+const bcrypt = require('bcrypt');
 
 function createHttpError(status, message) {
   const error = new Error(message);
@@ -14,14 +15,15 @@ async function login(req, res, next) {
       throw createHttpError(400, 'Email y contraseña son obligatorios');
     }
 
-
     const cliente = await clientesModel.getByEmail(email);
     
     if (!cliente) {
       throw createHttpError(401, 'Credenciales inválidas');
     }
 
-    if (cliente.contraseña !== contraseña) {
+    const isPasswordValid = await bcrypt.compare(contraseña, cliente.contraseña);
+    
+    if (!isPasswordValid) {
       throw createHttpError(401, 'Credenciales inválidas');
     }
 

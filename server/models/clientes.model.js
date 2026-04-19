@@ -21,11 +21,11 @@ async function getById(id) {
   return rows[0] || null;
 }
 
-async function create({ nombre, direccion, telefono, email }) {
+async function create({ nombre, direccion, telefono, email, contraseña }) {
   const [result] = await db.query(
-    `INSERT INTO clientes (nombre, direccion, telefono, email)
-    VALUES (?, ?, ?, ?)`,
-    [nombre, direccion, telefono, email]
+    `INSERT INTO clientes (nombre, direccion, telefono, email, contraseña)
+    VALUES (?, ?, ?, ?, ?)`,
+    [nombre, direccion, telefono, email, contraseña]
   );
 
   return getById(result.insertId);
